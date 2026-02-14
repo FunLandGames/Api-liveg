@@ -1,10 +1,70 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>LakshyaChatBoT AI</title>
+    <title>Smart AI Chatbot</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: Arial;
+            background: #111;
+            color: white;
+            text-align: center;
+        }
+        #chatbox {
+            width: 90%;
+            max-width: 500px;
+            margin: auto;
+            margin-top: 50px;
+        }
+        input {
+            width: 70%;
+            padding: 10px;
+        }
+        button {
+            padding: 10px;
+            background: green;
+            color: white;
+            border: none;
+        }
+        .message {
+            margin: 10px;
+            padding: 10px;
+            background: #222;
+            border-radius: 10px;
+        }
+    </style>
 </head>
 <body>
-    <h1>My AI Chatbot</h1>
-    <p>Chat interface coming soon...</p>
+
+<h2>Smart AI Chatbot 🤖</h2>
+
+<div id="chatbox"></div>
+
+<input type="text" id="message" placeholder="Type message...">
+<button onclick="sendMessage()">Send</button>
+
+<script>
+function sendMessage() {
+    let message = document.getElementById("message").value;
+
+    fetch("/chat", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({message: message})
+    })
+    .then(response => response.json())
+    .then(data => {
+        let chatbox = document.getElementById("chatbox");
+
+        chatbox.innerHTML += `<div class="message"><b>You:</b> ${message}</div>`;
+        chatbox.innerHTML += `<div class="message"><b>AI:</b> ${data.reply}</div>`;
+
+        document.getElementById("message").value = "";
+    });
+}
+</script>
+
 </body>
 </html>
