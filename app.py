@@ -4,8 +4,8 @@ import os
 
 app = Flask(__name__)
 
-API_KEY = os.environ.get("API_KEY")
-chat_history = []
+# Yaha apna API key lagao (ya Render me environment variable me set karo)
+API_KEY = os.getenv("OPENROUTER_API_KEY")
 
 @app.route("/")
 def home():
@@ -15,25 +15,28 @@ def home():
 def chat():
     user_message = request.json["message"]
 
-    # memory add
-    chat_history.append("User: " + user_message)
+    headers = {
+        "Authorization": f"Bearer {API_KEY}",
+        "Content-Type": "application/json"
+    }
+
+    data = {
+        "model": "mistralai/mistral-7b-instruct",
+        "messages": [
+            {"role": "user", "content": user_message}
+        ]
+    }
 
     response = requests.post(
-        "https://api-inference.huggingface.co/models/google/flan-t5-large",
-        headers={"Authorization": f"Bearer {API_KEY}"},
-        json={"inputs": "\n".join(chat_history)}
+        "https://openrouter.ai/api/v1/chat/completions",
+        headers=headers,
+        json=data
     )
 
-    result = response.json()
+    reply = response.json()["choices"][0]["message"]["content"]
 
-    try:
-        ai_reply = result[0]["generated_text"]
-    except:
-        ai_reply = str(result)
+    return jsonify({"reply": reply})
 
-    chat_history.append("Bot: " + ai_reply)
-
-    return jsonify({"reply": ai_reply})
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=10000)
+    app.run()
