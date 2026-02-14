@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template
 import requests
 import os
 
@@ -9,12 +9,13 @@ chat_history = []
 
 @app.route("/")
 def home():
-    return "Smart AI Chatbot is running!"
+    return render_template("index.html")
 
 @app.route("/chat", methods=["POST"])
 def chat():
     user_message = request.json["message"]
 
+    # memory add
     chat_history.append("User: " + user_message)
 
     response = requests.post(
@@ -25,7 +26,10 @@ def chat():
 
     result = response.json()
 
-    ai_reply = str(result)
+    try:
+        ai_reply = result[0]["generated_text"]
+    except:
+        ai_reply = str(result)
 
     chat_history.append("Bot: " + ai_reply)
 
