@@ -1,19 +1,12 @@
-from flask import Flask, request, jsonify, render_template
-import requests
 import os
+from flask import Flask, request, jsonify, render_template
+from groq import Groq
 
 app = Flask(__name__)
 
-HF_API_KEY = os.environ.get("HF_API_KEY")
-
-API_URL = "https://api-inference.huggingface.co/models/microsoft/DialoGPT-medium"
-headers = {
-    "Authorization": f"Bearer {HF_API_KEY}"
-}
-
-def query(payload):
-    response = requests.post(API_URL, headers=headers, json=payload)
-    return response.json()
+# 🔑 Groq API key environment variable se lo
+GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
+client = Groq(api_key=GROQ_API_KEY)
 
 @app.route("/")
 def home():
@@ -22,14 +15,19 @@ def home():
 @app.route("/chat", methods=["POST"])
 def chat():
     user_message = request.json.get("message")
-    result = query({"inputs": user_message})
+    if not user_message:
+        return jsonify({"reply": "Please type a message!"})
 
     try:
-        reply = result[0]["generated_text"]
-    except:
-        reply = "Sorry, I am thinking..."
+        response = client.chat.completions.create(
+            model="llama-3.1-8b-instant",  # Groq ka supported model
+            messages=[{"role": "user", "content": user_message}]
+        )
+        reply = response.choices[0].message.content
+    except Exception as e:
+        reply = f"Error: {str(e)}"
 
     return jsonify({"reply": reply})
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
+    app.run(host="0.0.0.0", port=8080, debug=True)
