@@ -1,58 +1,112 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Smart AI Chatbot 🤖</title>
-    <style>
-        body { font-family: Arial, sans-serif; background:#111; color:#eee; display:flex; flex-direction:column; align-items:center; padding:20px;}
-        #chatbox { width:100%; max-width:400px; height:400px; border:1px solid #444; overflow-y:auto; padding:10px; margin-bottom:10px; background:#222; }
-        #user-input { width:80%; padding:10px; }
-        #send-btn { padding:10px; }
-        .user { color: #4ee; }
-        .bot { color: #fe4; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gyani Bot 🤖</title>
+<style>
+    body { font-family: Arial; background: #121212; color: #fff; text-align: center; padding: 20px;}
+    #chatbox { width: 100%; max-width: 400px; margin: auto; height: 400px; overflow-y: auto; padding: 10px; border: 1px solid #444; background: #222; border-radius: 10px; }
+    .message { padding: 10px; margin: 5px 0; border-radius: 10px; }
+    .user { background: #1E88E5; text-align: left; }
+    .ai { background: #4CAF50; text-align: left; }
+    input { width: 70%; padding: 10px; border-radius: 5px; border: none; margin-top:10px;}
+    button { padding: 10px; border-radius: 5px; border: none; background: #4CAF50; color: white; margin-top:10px;}
+    a { color: #00bfff; display:block; margin:5px; text-decoration: none; font-weight: bold; }
+    footer { margin-top:20px; color: #aaa; font-size:14px; }
+</style>
 </head>
 <body>
-    <h2>Smart AI Chatbot 🤖</h2>
-    <div id="chatbox"></div>
-    <input type="text" id="user-input" placeholder="Type message...">
-    <button id="send-btn">Send</button>
 
-    <script>
-        const chatbox = document.getElementById("chatbox");
-        const userInput = document.getElementById("user-input");
-        const sendBtn = document.getElementById("send-btn");
+<h1>Gyani Bot 🤖</h1>
 
-        function appendMessage(sender, msg) {
-            const p = document.createElement("p");
-            p.className = sender;
-            p.textContent = sender === "user" ? "You: " + msg : "AI: " + msg;
-            chatbox.appendChild(p);
-            chatbox.scrollTop = chatbox.scrollHeight;
+<div id="chatbox"></div>
+
+<input type="text" id="userInput" placeholder="Type your message...">
+<button onclick="sendMessage()">Send</button>
+<button onclick="toggleTheme()">🌙 / ☀️</button>
+
+<h3>My Links</h3>
+<a href="https://www.instagram.com/_lakshhh__7?igsh=MXQxc3NobmxjYzlvdA==" target="_blank">Instagram</a>
+<a href="https://youtube.com/@mr.gyani3?si=4e1IFGm8z9GpuXze" target="_blank">YouTube</a>
+
+<h3>Feedback</h3>
+<input type="text" id="feedbackInput" placeholder="Type your feedback...">
+<button onclick="sendFeedback()">Submit</button>
+
+<footer>Made by Lakshya</footer>
+
+<script>
+    const chatbox = document.getElementById("chatbox");
+    const userInput = document.getElementById("userInput");
+
+    const dailyTips = [
+        "Tip 1: Drink water regularly 💧",
+        "Tip 2: Stay consistent with learning 📚",
+        "Tip 3: Take short breaks while studying ⏳",
+        "Tip 4: Believe in yourself 💪"
+    ];
+
+    function appendMessage(sender, msg){
+        const p = document.createElement("div");
+        p.className = sender === "user" ? "message user" : "message ai";
+        p.textContent = sender === "user" ? "You: " + msg : "Gyani Bot: " + msg;
+        chatbox.appendChild(p);
+        chatbox.scrollTop = chatbox.scrollHeight;
+    }
+
+    // Show daily tip on page load
+    window.onload = () => {
+        const tipIndex = new Date().getDate() % dailyTips.length;
+        appendMessage("ai", "Daily Tip: " + dailyTips[tipIndex]);
+    }
+
+    async function sendMessage(){
+        const message = userInput.value.trim();
+        if(!message) return;
+        appendMessage("user", message);
+        userInput.value = "";
+
+        try{
+            const res = await fetch("/chat", {
+                method: "POST",
+                headers: {"Content-Type":"application/json"},
+                body: JSON.stringify({message})
+            });
+            const data = await res.json();
+            appendMessage("ai", data.reply);
+        } catch(e){
+            appendMessage("ai", "Error connecting to server!");
         }
+    }
 
-        async function sendMessage() {
-            const message = userInput.value.trim();
-            if (!message) return;
-            appendMessage("user", message);
-            userInput.value = "";
-
-            try {
-                const response = await fetch("/chat", {
-                    method: "POST",
-                    headers: {"Content-Type":"application/json"},
-                    body: JSON.stringify({message})
-                });
-                const data = await response.json();
-                appendMessage("bot", data.reply);
-            } catch(e) {
-                appendMessage("bot", "Error connecting to server!");
-            }
+    function toggleTheme(){
+        if(document.body.style.background === "white"){
+            document.body.style.background = "#121212";
+            document.body.style.color = "#fff";
+        } else {
+            document.body.style.background = "white";
+            document.body.style.color = "black";
         }
+    }
 
-        sendBtn.addEventListener("click", sendMessage);
-        userInput.addEventListener("keydown", e => { if(e.key === "Enter") sendMessage(); });
-    </script>
+    function sendFeedback(){
+        const fb = document.getElementById("feedbackInput").value;
+        if(!fb) return;
+        appendMessage("ai", "Thanks for your feedback! 🙏");
+        document.getElementById("feedbackInput").value = "";
+
+        fetch("/feedback", {
+            method: "POST",
+            headers: {"Content-Type":"application/json"},
+            body: JSON.stringify({feedback: fb})
+        });
+    }
+
+    userInput.addEventListener("keydown", e => {
+        if(e.key === "Enter") sendMessage();
+    });
+</script>
+
 </body>
 </html>
