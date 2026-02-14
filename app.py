@@ -4,26 +4,32 @@ import os
 
 app = Flask(__name__)
 
-# API key environment variable se aayegi
 API_KEY = os.environ.get("API_KEY")
+chat_history = []
 
 @app.route("/")
 def home():
-    return "Free AI Chatbot API is running!"
+    return "Smart AI Chatbot is running!"
 
 @app.route("/chat", methods=["POST"])
 def chat():
     user_message = request.json["message"]
 
+    chat_history.append("User: " + user_message)
+
     response = requests.post(
-        "https://api-inference.huggingface.co/models/microsoft/DialoGPT-medium",
+        "https://api-inference.huggingface.co/models/google/flan-t5-large",
         headers={"Authorization": f"Bearer {API_KEY}"},
-        json={"inputs": user_message}
+        json={"inputs": "\n".join(chat_history)}
     )
 
     result = response.json()
 
-    return jsonify({"reply": result})
+    ai_reply = str(result)
+
+    chat_history.append("Bot: " + ai_reply)
+
+    return jsonify({"reply": ai_reply})
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=10000)
