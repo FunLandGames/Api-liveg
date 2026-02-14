@@ -4,8 +4,16 @@ import os
 
 app = Flask(__name__)
 
-# Yaha apna API key lagao (ya Render me environment variable me set karo)
-API_KEY = os.getenv("OPENROUTER_API_KEY")
+HF_API_KEY = os.environ.get("HF_API_KEY")
+
+API_URL = "https://api-inference.huggingface.co/models/microsoft/DialoGPT-medium"
+headers = {
+    "Authorization": f"Bearer {HF_API_KEY}"
+}
+
+def query(payload):
+    response = requests.post(API_URL, headers=headers, json=payload)
+    return response.json()
 
 @app.route("/")
 def home():
@@ -13,30 +21,15 @@ def home():
 
 @app.route("/chat", methods=["POST"])
 def chat():
-    user_message = request.json["message"]
+    user_message = request.json.get("message")
+    result = query({"inputs": user_message})
 
-    headers = {
-        "Authorization": f"Bearer {API_KEY}",
-        "Content-Type": "application/json"
-    }
-
-    data = {
-        "model": "mistralai/mistral-7b-instruct",
-        "messages": [
-            {"role": "user", "content": user_message}
-        ]
-    }
-
-    response = requests.post(
-        "https://openrouter.ai/api/v1/chat/completions",
-        headers=headers,
-        json=data
-    )
-
-    reply = response.json()["choices"][0]["message"]["content"]
+    try:
+        reply = result[0]["generated_text"]
+    except:
+        reply = "Sorry, I am thinking..."
 
     return jsonify({"reply": reply})
 
-
 if __name__ == "__main__":
-    app.run()
+    app.run(host="0.0.0.0", port=5000)
