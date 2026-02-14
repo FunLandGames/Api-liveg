@@ -1,33 +1,36 @@
+# app.py
+from flask import Flask, render_template, request, jsonify
 import os
-from flask import Flask, request, jsonify, render_template
 from groq import Groq
 
 app = Flask(__name__)
 
-# 🔑 Groq API key environment variable se lo
-GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
-client = Groq(api_key=GROQ_API_KEY)
+# 🔑 API key from Replit secrets
+api_key = os.environ.get("GROQ_API_KEY")
+client = Groq(api_key=api_key)
 
+# Home page
 @app.route("/")
 def home():
     return render_template("index.html")
 
+# Chat route
 @app.route("/chat", methods=["POST"])
 def chat():
-    user_message = request.json.get("message")
+    user_message = request.json.get("message", "")
     if not user_message:
-        return jsonify({"reply": "Please type a message!"})
+        return jsonify({"reply": "Please type something!"})
 
     try:
-        response = client.chat.completions.create(
-            model="llama-3.1-8b-instant",  # Groq ka supported model
+        response = client.chat.create(
+            model="gpt-4o-mini",  # recommended free/active model
             messages=[{"role": "user", "content": user_message}]
         )
-        reply = response.choices[0].message.content
+        reply = response.choices[0].message["content"]
     except Exception as e:
         reply = f"Error: {str(e)}"
 
     return jsonify({"reply": reply})
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8080, debug=True)
+    app.run(host="0.0.0.0", port=5000, debug=True)
