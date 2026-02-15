@@ -1,2 +1,2 @@
-flask
-groq
+Flask==2.3.6
+groq==0.1.3
