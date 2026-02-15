@@ -4,7 +4,7 @@ from groq import Groq
 
 app = Flask(__name__)
 
-# 🔑 Groq API key from Replit secrets
+# 🔑 GROQ API key from Replit secrets
 api_key = os.environ.get("GROQ_API_KEY")
 client = Groq(api_key=api_key)
 
@@ -31,13 +31,11 @@ def chat():
 
     return jsonify({"reply": reply})
 
-# Feedback route
 @app.route("/feedback", methods=["POST"])
 def feedback():
     data = request.json
     user_feedback = data.get("feedback")
     print("Feedback received:", user_feedback)
-    # Future: save in DB or email
     return jsonify({"status":"success"})
 
 if __name__ == "__main__":
