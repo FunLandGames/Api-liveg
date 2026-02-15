@@ -4,17 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Gyani Bot 🤖</title>
-<style>
-    body { font-family: Arial; background: #121212; color: #fff; text-align: center; padding: 20px;}
-    #chatbox { width: 100%; max-width: 400px; margin: auto; height: 400px; overflow-y: auto; padding: 10px; border: 1px solid #444; background: #222; border-radius: 10px; }
-    .message { padding: 10px; margin: 5px 0; border-radius: 10px; }
-    .user { background: #1E88E5; text-align: left; }
-    .ai { background: #4CAF50; text-align: left; }
-    input { width: 70%; padding: 10px; border-radius: 5px; border: none; margin-top:10px;}
-    button { padding: 10px; border-radius: 5px; border: none; background: #4CAF50; color: white; margin-top:10px;}
-    a { color: #00bfff; display:block; margin:5px; text-decoration: none; font-weight: bold; }
-    footer { margin-top:20px; color: #aaa; font-size:14px; }
-</style>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
 
@@ -37,76 +27,77 @@
 <footer>Made by Lakshya</footer>
 
 <script>
-    const chatbox = document.getElementById("chatbox");
-    const userInput = document.getElementById("userInput");
+const chatbox = document.getElementById("chatbox");
+const userInput = document.getElementById("userInput");
 
-    const dailyTips = [
-        "Tip 1: Drink water regularly 💧",
-        "Tip 2: Stay consistent with learning 📚",
-        "Tip 3: Take short breaks while studying ⏳",
-        "Tip 4: Believe in yourself 💪"
-    ];
+const dailyTips = [
+    "Tip 1: Drink water regularly 💧",
+    "Tip 2: Stay consistent with learning 📚",
+    "Tip 3: Take short breaks while studying ⏳",
+    "Tip 4: Believe in yourself 💪"
+];
 
-    function appendMessage(sender, msg){
-        const p = document.createElement("div");
-        p.className = sender === "user" ? "message user" : "message ai";
-        p.textContent = sender === "user" ? "You: " + msg : "Gyani Bot: " + msg;
-        chatbox.appendChild(p);
-        chatbox.scrollTop = chatbox.scrollHeight;
-    }
+// Show daily tip on page load
+window.onload = () => {
+    const tipIndex = new Date().getDate() % dailyTips.length;
+    appendMessage("ai", "Daily Tip: " + dailyTips[tipIndex]);
+}
 
-    // Show daily tip on page load
-    window.onload = () => {
-        const tipIndex = new Date().getDate() % dailyTips.length;
-        appendMessage("ai", "Daily Tip: " + dailyTips[tipIndex]);
-    }
+function appendMessage(sender, msg){
+    const p = document.createElement("div");
+    p.className = sender === "user" ? "message user" : "message ai";
+    p.textContent = sender === "user" ? "You: " + msg : "Gyani Bot: " + msg;
+    chatbox.appendChild(p);
+    chatbox.scrollTop = chatbox.scrollHeight;
+}
 
-    async function sendMessage(){
-        const message = userInput.value.trim();
-        if(!message) return;
-        appendMessage("user", message);
-        userInput.value = "";
+async function sendMessage(){
+    const message = userInput.value.trim();
+    if(!message) return;
 
-        try{
-            const res = await fetch("/chat", {
-                method: "POST",
-                headers: {"Content-Type":"application/json"},
-                body: JSON.stringify({message})
-            });
-            const data = await res.json();
-            appendMessage("ai", data.reply);
-        } catch(e){
-            appendMessage("ai", "Error connecting to server!");
-        }
-    }
+    // Clear chatbox and input immediately
+    chatbox.innerHTML = "";
+    userInput.value = "";
 
-    function toggleTheme(){
-        if(document.body.style.background === "white"){
-            document.body.style.background = "#121212";
-            document.body.style.color = "#fff";
-        } else {
-            document.body.style.background = "white";
-            document.body.style.color = "black";
-        }
-    }
-
-    function sendFeedback(){
-        const fb = document.getElementById("feedbackInput").value;
-        if(!fb) return;
-        appendMessage("ai", "Thanks for your feedback! 🙏");
-        document.getElementById("feedbackInput").value = "";
-
-        fetch("/feedback", {
+    try{
+        const res = await fetch("/chat", {
             method: "POST",
             headers: {"Content-Type":"application/json"},
-            body: JSON.stringify({feedback: fb})
+            body: JSON.stringify({message})
         });
+        const data = await res.json();
+        appendMessage("ai", data.reply); // Only bot reply visible
+    } catch(e){
+        appendMessage("ai", "Error connecting to server!");
     }
+}
 
-    userInput.addEventListener("keydown", e => {
-        if(e.key === "Enter") sendMessage();
+function toggleTheme(){
+    if(document.body.style.background === "white"){
+        document.body.style.background = "#121212";
+        document.body.style.color = "#fff";
+    } else {
+        document.body.style.background = "white";
+        document.body.style.color = "black";
+    }
+}
+
+function sendFeedback(){
+    const fb = document.getElementById("feedbackInput").value;
+    if(!fb) return;
+    appendMessage("ai", "Thanks for your feedback! 🙏");
+    document.getElementById("feedbackInput").value = "";
+
+    fetch("/feedback", {
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body: JSON.stringify({feedback: fb})
     });
-</script>
+}
 
+userInput.addEventListener("keydown", e => {
+    if(e.key === "Enter") sendMessage();
+});
+</script>
 </body>
 </html>
